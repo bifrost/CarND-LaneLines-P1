@@ -49,7 +49,7 @@ My pipeline consisted of 7 steps.
 I did not modify the draw_lines() function to drawing the extrapolate lane lines. The extrapolate lane lines image is returned in step 7. and superimposed with the resized image in the process_image() function.
 
 
-I have included two images that shows the result of the pipeline. The first image is superimposed from the original images and the line segments from the hough transformation. The region of interest is shown as blue lines. 
+I have included two images that shows the result of the pipeline. The first image is superimposed from the original images and the line segments from the hough transformation.
 
 ![alt text][segmented]
 
