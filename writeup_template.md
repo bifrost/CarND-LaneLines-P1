@@ -40,16 +40,16 @@ My pipeline consisted of 7 steps.
 6. Find lanes by using a hough transformation, with parameters `rho = 1`, `theta = np.pi/180`, `threshold = 30`, `min_line_length = 5` and `max_line_gap = 5`.
 
 7. Extrapolate lane lines.
-⋅⋅*Each line segments is splitted into two points, start point and end point.
-⋅⋅*The points are then divided into left lane points and right lane points, by using a cut `width/2`.
-⋅⋅*A first order polyfit is then used to extrapolate left- and right lane line. The polyfit finds the `height` as a function of the `width`.
-⋅⋅*As a result an annotated image with the lane lines is returned. 
+- Each line segment is splitted into two points, start point and end point.
+- The points are then divided into left lane points and right lane points, by using a cut `width/2`.
+- A first order polyfit is then used to extrapolate left- and right lane line. The polyfit finds the `height` as a function of the `width`.
+- As a result an annotated image with the lane lines is returned. 
 
 
 I did not modify the draw_lines() function to drawing the extrapolate lane lines. The extrapolate lane lines image is returned in step 7. and superimposed with the resized image in the process_image() function.
 
 
-I have included two images that shows the result of the pipeline. The first image is superimposed from the original images and the line segments from the hough transformation.
+I have included two images that shows the result of the pipeline. The first image is superimposed from the original image and the line segments from the hough transformation.
 
 ![alt text][segmented]
 
@@ -78,5 +78,5 @@ A possible improvement would be to ...
 
 1. Use second order fit to the lane lines as a function of the `height`.
 
-2. Use an adaptive algorithm to divide left and right points for the second order fit of the lane lines. It can be done by process points decreasing by `height`. Then keep track of latest left and right lane point to estimate the center.
+2. Use an adaptive algorithm to divide left and right points. It can be done by process points decreasing by `height`. Then keep track of latest left and right lane point to estimate the center.
 
