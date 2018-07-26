@@ -12151,7 +12151,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">images</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;test_images/&quot;</span><span class="p">)</span>
@@ -12171,11 +12171,14 @@ div#notebook {
 <span class="n">min_line_length</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">max_line_gap</span> <span class="o">=</span> <span class="mi">5</span>
 
+<span class="c1"># roi</span>
+<span class="n">top_roi</span> <span class="o">=</span> <span class="mi">310</span>
+
 <span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">960</span><span class="p">,</span> <span class="mi">540</span><span class="p">)</span>
 <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span>
         <span class="p">(</span><span class="mi">120</span><span class="p">,</span><span class="n">image_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-        <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">310</span><span class="p">),</span> 
-        <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="mi">310</span><span class="p">),</span> 
+        <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="n">top_roi</span><span class="p">),</span> 
+        <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">top_roi</span><span class="p">),</span> 
         <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span><span class="n">image_size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     
@@ -12204,19 +12207,28 @@ div#notebook {
     
     <span class="n">imshape</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
     
-    <span class="c1"># resize to (960, 540)</span>
+    <span class="c1"># the find lane pipeline consist of following 7 steps</span>
+    
+    <span class="c1"># 1. resize to (960, 540)</span>
     <span class="n">scaled_image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">image_size</span><span class="p">)</span>
     
+    <span class="c1"># 2. convert to gray scale image</span>
     <span class="n">gray_img</span> <span class="o">=</span> <span class="n">grayscale</span><span class="p">(</span><span class="n">scaled_image</span><span class="p">)</span>
 
+    <span class="c1"># 3. blur the gray scale image</span>
     <span class="n">blur_img</span> <span class="o">=</span> <span class="n">gaussian_blur</span><span class="p">(</span><span class="n">gray_img</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">)</span>
 
+    <span class="c1"># 4. detect edges</span>
     <span class="n">canny_img</span> <span class="o">=</span> <span class="n">canny</span><span class="p">(</span><span class="n">blur_img</span><span class="p">,</span> <span class="n">low_threshold</span><span class="p">,</span> <span class="n">high_threshold</span><span class="p">)</span>
 
+    <span class="c1"># 5. apply region of interest</span>
     <span class="n">roi_img</span> <span class="o">=</span> <span class="n">region_of_interest</span><span class="p">(</span><span class="n">canny_img</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
     
+    <span class="c1"># 6. find lanes by using a hough transformation</span>
     <span class="n">line_img</span><span class="p">,</span> <span class="n">lines</span> <span class="o">=</span> <span class="n">hough_lines</span><span class="p">(</span><span class="n">roi_img</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">min_line_length</span><span class="p">,</span> <span class="n">max_line_gap</span><span class="p">)</span>
 
+    <span class="c1"># 7. extrapolate lane lines</span>
+    
     <span class="c1"># get points to left line and right line</span>
     <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">lines</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:</span><span class="mi">2</span><span class="p">],</span> <span class="n">lines</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">center</span> <span class="o">=</span> <span class="n">imshape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span>
@@ -12226,7 +12238,7 @@ div#notebook {
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">left_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">scaled_image</span><span class="p">,</span> <span class="n">scaled_image</span><span class="p">,</span> <span class="n">scaled_image</span>
     
-    <span class="n">extrapolate_img</span><span class="p">,</span> <span class="n">extrapolate_lines</span> <span class="o">=</span> <span class="n">extrapolate</span><span class="p">(</span><span class="n">left_points</span><span class="p">,</span> <span class="n">right_points</span><span class="p">,</span> <span class="mi">310</span><span class="p">,</span> <span class="n">imshape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">extrapolate_img</span><span class="p">,</span> <span class="n">extrapolate_lines</span> <span class="o">=</span> <span class="n">extrapolate</span><span class="p">(</span><span class="n">left_points</span><span class="p">,</span> <span class="n">right_points</span><span class="p">,</span> <span class="n">top_roi</span><span class="p">,</span> <span class="n">imshape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     
     <span class="k">return</span> <span class="n">scaled_image</span><span class="p">,</span> <span class="n">line_img</span><span class="p">,</span> <span class="n">extrapolate_img</span>
 </pre></div>
@@ -12238,7 +12250,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_of_images</span><span class="p">):</span>
@@ -12255,15 +12267,18 @@ div#notebook {
     <span class="n">x</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;b--&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">w_img</span> <span class="o">=</span> <span class="n">weighted_img</span><span class="p">(</span><span class="n">line_img</span><span class="p">,</span> <span class="n">scaled_image</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">w_img</span><span class="p">)</span>
+    <span class="n">segmented_img</span> <span class="o">=</span> <span class="n">weighted_img</span><span class="p">(</span><span class="n">line_img</span><span class="p">,</span> <span class="n">scaled_image</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">segmented_img</span><span class="p">)</span>
  
     <span class="c1"># show lane</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">no_of_images</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">w_img</span> <span class="o">=</span> <span class="n">weighted_img</span><span class="p">(</span><span class="n">extrapolate_img</span><span class="p">,</span> <span class="n">scaled_image</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">w_img</span><span class="p">)</span>
+    <span class="n">lane_img</span> <span class="o">=</span> <span class="n">weighted_img</span><span class="p">(</span><span class="n">extrapolate_img</span><span class="p">,</span> <span class="n">scaled_image</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">lane_img</span><span class="p">)</span>
     
-    <span class="n">bgr</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">w_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
+    <span class="n">bgr</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">segmented_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s1">&#39;test_images_output/segmented_&#39;</span> <span class="o">+</span> <span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bgr</span><span class="p">)</span>
+    
+    <span class="n">bgr</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">lane_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
     <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s1">&#39;test_images_output/lane_&#39;</span> <span class="o">+</span> <span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bgr</span><span class="p">)</span>
 </pre></div>
 
